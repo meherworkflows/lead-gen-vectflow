@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Get a Free Consultation</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: linear-gradient(135deg, #0f172a, #1e293b);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+  .card {
+    background: #ffffff;
+    border-radius: 14px;
+    padding: 40px;
+    max-width: 460px;
+    width: 100%;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.25);
+  }
+  .card h1 {
+    font-size: 22px;
+    margin-bottom: 6px;
+    color: #0f172a;
+  }
+  .card p.sub {
+    color: #64748b;
+    margin-bottom: 24px;
+    font-size: 14px;
+  }
+  label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: #334155;
+    margin-bottom: 6px;
+    margin-top: 14px;
+  }
+  input, select, textarea {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    font-size: 14px;
+    outline: none;
+  }
+  input:focus, select:focus, textarea:focus {
+    border-color: #2563eb;
+  }
+  button {
+    margin-top: 22px;
+    width: 100%;
+    padding: 12px;
+    background: #2563eb;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  button:hover { background: #1d4ed8; }
+  button:disabled { background: #93c5fd; cursor: not-allowed; }
+  .msg {
+    margin-top: 14px;
+    font-size: 14px;
+    text-align: center;
+  }
+  .msg.success { color: #16a34a; }
+  .msg.error { color: #dc2626; }
+</style>
+</head>
+<body>
+
+<div class="card">
+  <h1>Get a Free Consultation</h1>
+  <p class="sub">Fill this form and our team will contact you within 24 hours.</p>
+
+  <form id="leadForm">
+    <label for="name">Full Name *</label>
+    <input type="text" id="name" name="name" required />
+
+    <label for="email">Email *</label>
+    <input type="email" id="email" name="email" required />
+
+    <label for="phone">Phone Number *</label>
+    <input type="tel" id="phone" name="phone" required />
+
+    <label for="company">Company Name</label>
+    <input type="text" id="company" name="company" />
+
+    <label for="service">Service Interested In *</label>
+    <select id="service" name="service" required>
+      <option value="">-- Select --</option>
+      <option value="Lead Generation">Lead Generation</option>
+      <option value="Web Automation">Web Automation (n8n)</option>
+      <option value="CRM Setup">CRM Setup</option>
+      <option value="Other">Other</option>
+    </select>
+
+    <label for="message">Message</label>
+    <textarea id="message" name="message" rows="3"></textarea>
+
+    <button type="submit" id="submitBtn">Submit</button>
+    <div class="msg" id="responseMsg"></div>
+  </form>
+</div>
+
+<script>
+  // IMPORTANT: Replace this with your actual n8n Production Webhook URL
+  const N8N_WEBHOOK_URL = "https://your-n8n-instance.com/webhook/lead-form";
+
+  const form = document.getElementById("leadForm");
+  const btn = document.getElementById("submitBtn");
+  const msg = document.getElementById("responseMsg");
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    btn.disabled = true;
+    btn.textContent = "Submitting...";
+    msg.textContent = "";
+    msg.className = "msg";
+
+    const data = {
+      name: form.name.value,
+      email: form.email.value,
+      phone: form.phone.value,
+      company: form.company.value,
+      service: form.service.value,
+      message: form.message.value,
+      source: "Website Form",
+      submittedAt: new Date().toISOString()
+    };
+
+    try {
+      const res = await fetch(N8N_WEBHOOK_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data)
+      });
+
+      if (res.ok) {
+        msg.textContent = "Thank you! We'll be in touch soon.";
+        msg.className = "msg success";
+        form.reset();
+      } else {
+        throw new Error("Request failed");
+      }
+    } catch (err) {
+      msg.textContent = "Something went wrong. Please try again.";
+      msg.className = "msg error";
+    } finally {
+      btn.disabled = false;
+      btn.textContent = "Submit";
+    }
+  });
+</script>
+
+</body>
+</html>
